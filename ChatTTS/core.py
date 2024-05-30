@@ -3,11 +3,8 @@ import sys
 import platform
 import logging
 from omegaconf import OmegaConf
-
-# Amazing WTF things to check if it is m1(m2,m3) chip
-# we need to change the environment variable before torch import
-if sys.platform == "darwin" and platform.machine() == "arm64":
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+import random
+import numpy as np
 
 import torch
 from vocos import Vocos
@@ -200,10 +197,10 @@ class Chat:
 
         return wav
 
-    def sample_random_speaker(
-        self,
-    ):
-
+    def sample_random_speaker(self, seed):
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
         dim = self.pretrain_models["gpt"].gpt.layers[0].mlp.gate_proj.in_features
         std, mean = self.pretrain_models["spk_stat"].chunk(2)
         return torch.randn(dim, device=std.device) * std + mean

@@ -1,7 +1,3 @@
-import os
-
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-
 from .core import Chat
 import argparse
 import numpy as np
@@ -15,8 +11,9 @@ def main():
     ap.add_argument(
         "-o", "--out-file", help="out file name", default="tts.wav", dest="out_file"
     )
-    ap.add_argument("--use-seed", help="use seed", action="store_true", dest="use_seed")
-    ap.add_argument("-s", "--seed", help="out file name", default=None, dest="seed")
+    ap.add_argument(
+        "-s", "--seed", help="out file name", type=int, default=None, dest="seed"
+    )
 
     args = ap.parse_args()
     out_file = args.out_file
@@ -34,8 +31,18 @@ def main():
     texts = [
         text,
     ]
+    if args.seed:
+        r = chat.sample_random_speaker(seed=args.seed)
+        params_infer_code = {
+            "spk_emb": r,  # add sampled speaker
+            "temperature": 0.3,  # using custom temperature
+            "top_P": 0.7,  # top P decode
+            "top_K": 20,  # top K decode
+        }
+        wavs = chat.infer(texts, use_decoder=True, params_infer_code=params_infer_code)
+    else:
+        wavs = chat.infer(texts, use_decoder=True)
 
-    wavs = chat.infer(texts, use_decoder=True)
     audio_data = np.array(wavs[0], dtype=np.float32)
     sample_rate = 24000
     audio_data = (audio_data * 32767).astype(np.int16)
@@ -45,4 +52,7 @@ def main():
         wf.setsampwidth(2)  # 2 bytes per sample
         wf.setframerate(sample_rate)
         wf.writeframes(audio_data.tobytes())
-    print(f"Generate Done for file {out_file}")
+    if args.seed:
+        print(f"Generate Done for file {out_file} with seed {args.seed}")
+    else:
+        print(f"Generate Done for file {out_file}")

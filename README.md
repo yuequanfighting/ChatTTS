@@ -5,7 +5,7 @@
 
 - pip3 install chattts-fork
 - chattts "哈哈" -o test.wav
-- Support Mac m1 m2 m3 GPU mps
+- 支持了 seed 固定音色 `chattts "哈哈" -o test.wav --seed 222`
 
 ChatTTS is a text-to-speech model designed specifically for dialogue scenario such as LLM assistant. It supports both English and Chinese languages. Our model is trained with 100,000+ hours composed of chinese and english. The open-source version on HuggingFace is a 40,000 hours pre trained model without SFT.
 
@@ -53,6 +53,7 @@ Audio(wavs[0], rate=24_000, autoplay=True)
 # Sample a speaker from Gaussian.
 import torch
 std, mean = torch.load('ChatTTS/asset/spk_stat.pt').chunk(2)
+
 rand_spk = torch.randn(768) * std + mean
 
 params_infer_code = {
