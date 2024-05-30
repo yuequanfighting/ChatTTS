@@ -19,6 +19,8 @@ def select_device(min_memory=2048):
                 f"GPU {selected_gpu} has {round(free_memory_mb, 2)} MB memory left.",
             )
             device = torch.device("cpu")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
     else:
         logger.log(logging.WARNING, f"No GPU found, use CPU instead")
         device = torch.device("cpu")
