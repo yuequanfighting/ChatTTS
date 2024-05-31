@@ -13,6 +13,7 @@ from ChatTTS.model.gpt import GPT_warpper
 from ChatTTS.utils.gpu_utils import select_device
 from ChatTTS.utils.io_utils import get_latest_modified_file
 from ChatTTS.infer.api import refine_text, infer_code
+from ChatTTS.utils.infer_utils import count_invalid_characters, detect_language
 
 from huggingface_hub import snapshot_download
 
@@ -24,6 +25,7 @@ class Chat:
         self,
     ):
         self.pretrain_models = {}
+        self.normalizer = {}
         self.logger = logging.getLogger(__name__)
 
     def check_model(self, level=logging.INFO, use_decoder=False):
@@ -46,7 +48,11 @@ class Chat:
         return not not_finish
 
     def load_models(
-        self, source="huggingface", force_redownload=False, local_path="<LOCAL_PATH>"
+        self,
+        source="huggingface",
+        force_redownload=False,
+        local_path="<LOCAL_PATH>",
+        **kwargs,
     ):
         if source == "huggingface":
             hf_home = os.getenv("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
@@ -66,24 +72,19 @@ class Chat:
                 )
             else:
                 self.logger.log(logging.INFO, f"Load from cache: {download_path}")
-            self._load(
-                **{
-                    k: os.path.join(download_path, v)
-                    for k, v in OmegaConf.load(
-                        os.path.join(download_path, "config", "path.yaml")
-                    ).items()
-                }
-            )
         elif source == "local":
             self.logger.log(logging.INFO, f"Load from local: {local_path}")
-            self._load(
-                **{
-                    k: os.path.join(local_path, v)
-                    for k, v in OmegaConf.load(
-                        os.path.join(local_path, "config", "path.yaml")
-                    ).items()
-                }
-            )
+            download_path = local_path
+
+        self._load(
+            **{
+                k: os.path.join(download_path, v)
+                for k, v in OmegaConf.load(
+                    os.path.join(download_path, "config", "path.yaml")
+                ).items()
+            },
+            **kwargs,
+        )
 
     def _load(
         self,
@@ -97,6 +98,7 @@ class Chat:
         decoder_ckpt_path: str = None,
         tokenizer_path: str = None,
         device: str = None,
+        compile: bool = True,
     ):
         if not device:
             device = select_device(4096)
@@ -121,15 +123,17 @@ class Chat:
             cfg = OmegaConf.load(gpt_config_path)
             gpt = GPT_warpper(**cfg).to(device).eval()
             assert gpt_ckpt_path, "gpt_ckpt_path should not be None"
-            gpt.load_state_dict(torch.load(gpt_ckpt_path, map_location=device))
+            gpt.load_state_dict(torch.load(gpt_ckpt_path, map_location="cpu"))
+            if compile and int(sys.version_info.minor) < 12:
+                gpt.gpt.forward = torch.compile(
+                    gpt.gpt.forward, backend="inductor", dynamic=True
+                )
             self.pretrain_models["gpt"] = gpt
             spk_stat_path = os.path.join(os.path.dirname(gpt_ckpt_path), "spk_stat.pt")
             assert os.path.exists(
                 spk_stat_path
             ), f"Missing spk_stat.pt: {spk_stat_path}"
-            self.pretrain_models["spk_stat"] = torch.load(
-                spk_stat_path, map_location=device
-            ).to(device)
+            self.pretrain_models["spk_stat"] = torch.load(spk_stat_path).to(device)
             self.logger.log(logging.INFO, "gpt loaded.")
 
         if decoder_config_path:
@@ -154,11 +158,31 @@ class Chat:
         skip_refine_text=False,
         refine_text_only=False,
         params_refine_text={},
-        params_infer_code={},
-        use_decoder=False,
+        params_infer_code={"prompt": "[speed_5]"},
+        use_decoder=True,
+        do_text_normalization=False,
+        lang=None,
     ):
 
         assert self.check_model(use_decoder=use_decoder)
+
+        if not isinstance(text, list):
+            text = [text]
+
+        if do_text_normalization:
+            for i, t in enumerate(text):
+                _lang = detect_language(t) if lang is None else lang
+                # self.init_normalizer(_lang)
+                text[i] = self.normalizer[_lang].normalize(
+                    t, verbose=False, punct_post_process=True
+                )
+
+        for i in text:
+            invalid_characters = count_invalid_characters(i)
+            if len(invalid_characters):
+                self.logger.log(
+                    logging.WARNING, f"Invalid characters found! : {invalid_characters}"
+                )
 
         if not skip_refine_text:
             text_tokens = refine_text(self.pretrain_models, text, **params_refine_text)[
@@ -193,9 +217,24 @@ class Chat:
                 self.pretrain_models["dvae"](i[None].permute(0, 2, 1))
                 for i in result["ids"]
             ]
+
         wav = [self.pretrain_models["vocos"].decode(i).cpu().numpy() for i in mel_spec]
 
         return wav
+
+    def sample_random_speaker(
+        self,
+    ):
+
+        dim = self.pretrain_models["gpt"].gpt.layers[0].mlp.gate_proj.in_features
+        std, mean = self.pretrain_models["spk_stat"].chunk(2)
+        return torch.randn(dim, device=std.device) * std + mean
+
+    # def init_normalizer(self, lang):
+
+    #     if lang not in self.normalizer:
+    #         from nemo_text_processing.text_normalization.normalize import Normalizer
+    #         self.normalizer[lang] = Normalizer(input_case='cased', lang=lang)
 
     def sample_random_speaker(self, seed):
         torch.manual_seed(seed)
