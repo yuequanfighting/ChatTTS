@@ -98,7 +98,7 @@ class Chat:
         decoder_ckpt_path: str = None,
         tokenizer_path: str = None,
         device: str = None,
-        compile: bool = True,
+        compile: bool = False,
     ):
         if not device:
             device = select_device(4096)
