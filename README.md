@@ -1,7 +1,13 @@
 # ChatTTS
 [**English**](./README.md) | [**中文简体**](./README_CN.md)
 
-ChatTTS is a text-to-speech model designed specifically for dialogue scenario such as LLM assistant. It supports both English and Chinese languages. Our model is trained with 100,000+ hours composed of chinese and english. The open-source version on **[HuggingFace](https://huggingface.co/2Noise/ChatTTS)** is a 40,000 hours pre trained model without SFT.
+# For this fork
+
+- pip3 install chattts-fork
+- chattts "哈哈" -o test.wav
+- 支持了 seed 固定音色 `chattts "哈哈" -o test.wav --seed 222`
+
+ChatTTS is a text-to-speech model designed specifically for dialogue scenario such as LLM assistant. It supports both English and Chinese languages. Our model is trained with 100,000+ hours composed of chinese and english. The open-source version on HuggingFace is a 40,000 hours pre trained model without SFT.
 
 For formal inquiries about model and roadmap, please contact us at **open-source@2noise.com**. You could join our QQ group: 808364215 for discussion. Adding github issues is always welcomed.
 
