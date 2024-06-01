@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 setup(
     name="chattts-fork",
     description="fork from https://github.com/2noise/ChatTTS to PYPI",
-    version="0.0.6",
+    version="0.0.7",
     license="# Attribution-NonCommercial-NoDerivatives 4.0 International",
     author="lich99 CH.Li, yihong0618",
     author_email="zouzou0208@gmail.com",

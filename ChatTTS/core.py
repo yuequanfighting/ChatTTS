@@ -2,6 +2,7 @@ import os
 import sys
 import platform
 import logging
+from functools import partial
 from omegaconf import OmegaConf
 import random
 import numpy as np
