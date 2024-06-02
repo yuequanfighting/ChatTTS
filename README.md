@@ -4,7 +4,7 @@
 # 沐柚菌修改
 - 这个项目里，修改了core文件，使得本地Windows能够跑通代码，同时加入了seed变量，可以固定音色，提供本地ipynb文件。
 - 提供了[Colab训练链接](https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing)
-- 模型百度网盘链接：https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing
+- 模型百度网盘链接：链接：https://pan.baidu.com/s/1uPV9S2wr4g9rxZ2uRN8hTg?pwd=n5rn  提取码：n5rn
 - 我的微信公众号
 ![](img/公众号.png)
 
