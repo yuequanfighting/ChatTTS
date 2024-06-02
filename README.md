@@ -5,8 +5,9 @@
 - 这个项目里，修改了core文件，使得本地Windows能够跑通代码，同时加入了seed变量，可以固定音色，提供本地ipynb文件。
 - 提供了[Colab训练链接](https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing)
 - 模型百度网盘链接：https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing
-- 我的微信公众号![](https://muyoujun.oss-cn-beijing.aliyuncs.com/img/202406021538301.png)
-- 
+- 我的微信公众号
+![](https://muyoujun.oss-cn-beijing.aliyuncs.com/img/202406021538301.png)
+
 # For this fork
 
 - pip3 install chattts-fork
