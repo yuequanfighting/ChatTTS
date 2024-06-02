@@ -6,7 +6,7 @@
 - 提供了[Colab训练链接](https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing)
 - 模型百度网盘链接：https://colab.research.google.com/drive/1sIzBBgZuAS0ytfYSu0K3AB4zm21LAkAu?usp=sharing
 - 我的微信公众号
-![](https://muyoujun.oss-cn-beijing.aliyuncs.com/img/202406021538301.png)
+![](img/公众号.png)
 
 # For this fork
 
